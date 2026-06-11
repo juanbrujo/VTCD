@@ -1,3 +1,11 @@
+/**
+ * VTCD - Visual Test Critical Deploy
+ * Automated screenshot testing tool for critical website pages
+ *
+ * This tool captures screenshots of specified pages at multiple resolutions
+ * and saves them with organized filenames for visual regression testing.
+ */
+
 const fs = require('fs');
 const { EventEmitter } = require('events');
 const path = require('path');
@@ -12,6 +20,10 @@ const { baseUrl, pages } = config;
 
 EventEmitter.defaultMaxListeners = 25;
 
+/**
+ * Emoji constants used throughout the CLI for visual feedback
+ * @type {Object<string, string>}
+ */
 const EMOJIS = {
   start: '🚀',
   success: '✅',
@@ -22,6 +34,11 @@ const EMOJIS = {
   arrow: '→',
 };
 
+/**
+ * Formats a Date object into separate date and time strings
+ * @param {Date} date - The date to format
+ * @returns {Object} Object containing dateStr (YYYYMMDD) and timeStr (HH:MM)
+ */
 function formatDate(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -35,6 +52,11 @@ function formatDate(date) {
   };
 }
 
+/**
+ * Prompts the user with an interactive question and returns their answer
+ * @param {string} query - The question to display to the user
+ * @returns {Promise<string>} The user's answer in lowercase
+ */
 function askQuestion(query) {
   const rl = readline.createInterface({
     input: process.stdin,
@@ -49,6 +71,12 @@ function askQuestion(query) {
   });
 }
 
+/**
+ * Verifies that Chrome/Chromium browser is installed in Puppeteer's cache directory
+ * Exits the process with error if browser is not found
+ * @async
+ * @throws {process.exit} Exits with code 1 if Chrome is not installed
+ */
 async function checkBrowserInstallation() {
   const cacheDir = path.join(process.env.HOME || process.env.USERPROFILE, '.cache/puppeteer');
   const chromePaths = [
@@ -70,35 +98,51 @@ async function checkBrowserInstallation() {
   }
 }
 
-async function captureScreenshot(pageres, page, baseUrl, outputDir, resolutions, delay, timestamp) {
+/**
+ * Captures screenshots of a single page at multiple resolutions
+ * Displays a progress bar showing real-time capture status and elapsed time
+ * @async
+ * @param {Function} Pageres - Pageres class for taking screenshots
+ * @param {Object} page - Page configuration object with name and url properties
+ * @param {string} baseUrl - Base URL for the website
+ * @param {string} outputDir - Directory path where screenshots will be saved
+ * @param {string[]} resolutions - Array of resolution sizes (e.g., ['360x740', '1280x1024'])
+ * @param {number} delay - Seconds to wait after page load before capturing
+ * @param {Object} timestamp - Timestamp object with dateStr and timeStr properties
+ * @returns {Promise<Object>} Result object with success flag, page data, and optional error message
+ */
+async function captureScreenshot(Pageres, page, baseUrl, outputDir, resolutions, delay, timestamp) {
   try {
     const pageSlug = Sluggin(page.name);
     const filename = `${timestamp.dateStr}_${timestamp.timeStr}_${pageSlug}-<%= size %>`;
+    const startTime = Date.now();
 
     const progressBar = new cliProgress.SingleBar({
-      format: `${EMOJIS.processing} {name} | {bar} | {value}/{total}`,
+      format: `${EMOJIS.processing} {name} | {bar} | {value}/{total} ~ {time}s.`,
       hideCursor: true,
       barCompleteChar: '█',
       barIncompleteChar: '░',
       barsize: 15,
       stopOnComplete: true,
+      noTTYOutput: true,
     });
 
-    progressBar.start(resolutions.length, 0, { name: chalk.cyan(page.name) });
+    progressBar.start(resolutions.length, 0, { name: chalk.cyan(page.name), time: '0' });
 
-    let completed = 0;
-    const originalRun = pageres.prototype.run;
+    for (let i = 0; i < resolutions.length; i++) {
+      await new Pageres({
+        delay: delay,
+        filename: filename,
+        format: 'jpg',
+      })
+        .source(`${baseUrl}${page.url}`, [resolutions[i]])
+        .destination(outputDir)
+        .run();
 
-    await new pageres({
-      delay: delay,
-      filename: filename,
-      format: 'jpg',
-    })
-      .source(`${baseUrl}${page.url}`, resolutions)
-      .destination(outputDir)
-      .run();
+      const elapsed = Math.round((Date.now() - startTime) / 1000);
+      progressBar.update(i + 1, { time: elapsed });
+    }
 
-    progressBar.update(resolutions.length);
     progressBar.stop();
 
     return { success: true, page };
@@ -107,11 +151,25 @@ async function captureScreenshot(pageres, page, baseUrl, outputDir, resolutions,
   }
 }
 
+/**
+ * Main application flow
+ * Orchestrates the screenshot capture process:
+ * 1. Displays welcome message with configured pages
+ * 2. Prompts user for confirmation
+ * 3. Verifies browser installation
+ * 4. Captures screenshots for each page sequentially
+ * 5. Displays summary of successful and failed captures
+ */
 (async () => {
   console.log(`\n${EMOJIS.start} ${chalk.cyan.bold('Visual Test Critical Deploy')} v${version}\n`);
   console.log(chalk.gray('─'.repeat(50)));
 
-  const domain = baseUrl.split('//')[1];
+  let domain = baseUrl.split('//')[1];
+  if (domain.startsWith('www.')) {
+    domain = domain.slice(4);
+  }
+  const dirName = domain.replace(/\./g, '_');
+
   const date = new Date();
   const timestamp = formatDate(date);
 
@@ -137,7 +195,7 @@ async function captureScreenshot(pageres, page, baseUrl, outputDir, resolutions,
   await checkBrowserInstallation();
   const Pageres = (await import('pageres')).default;
 
-  const outputDir = `screenshots/${domain}`;
+  const outputDir = `screenshots/${dirName}`;
   const resolutions = ['360x740', '1280x1024'];
   const delay = 2;
 
