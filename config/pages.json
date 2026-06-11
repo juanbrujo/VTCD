@@ -1,14 +1,17 @@
-[
+{
+  "baseUrl": "https://nueva.afpmodelo.cl",
+  "pages": [
     {
-        "name": "Home",
-        "url": "/"
+      "name": "Home",
+      "url": "/"
     },
     {
-        "name": "Incorporaciones",
-        "url": "/incorporaciones"
+      "name": "Incorporaciones",
+      "url": "/incorporaciones"
     },
     {
-        "name": "Evolución Valor Cuota",
-        "url": "/evolucion-valor-cuota"
+      "name": "Evolución Valor Cuota",
+      "url": "/evolucion-valor-cuota"
     }
-]
+  ]
+}

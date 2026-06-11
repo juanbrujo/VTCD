@@ -4,7 +4,8 @@ const path = require('path');
 const chalk = require('chalk');
 const cliProgress = require('cli-progress');
 
-const pages = JSON.parse(fs.readFileSync('./config/pages.json', 'utf8'));
+const config = JSON.parse(fs.readFileSync('./config/pages.json', 'utf8'));
+const { baseUrl, pages } = config;
 
 EventEmitter.defaultMaxListeners = 25;
 
@@ -90,7 +91,6 @@ async function captureScreenshot(pageres, page, baseUrl, outputDir, resolutions,
   const date = new Date();
   const timestamp = formatDate(date);
 
-  const baseUrl = 'https://nueva.afpmodelo.cl';
   const domain = baseUrl.split('//')[1];
   const outputDir = `screenshots/${domain}`;
   const resolutions = ['360x740', '1280x1024'];
