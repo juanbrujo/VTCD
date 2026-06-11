@@ -17,6 +17,28 @@ const EMOJIS = {
   info: 'ℹ️',
 };
 
+function slugify(text) {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function formatDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  return {
+    dateStr: `${year}${month}${day}`,
+    timeStr: `${hours}:${minutes}`,
+  };
+}
+
 async function checkBrowserInstallation() {
   const cacheDir = path.join(process.env.HOME || process.env.USERPROFILE, '.cache/puppeteer');
   const chromePaths = [
@@ -38,11 +60,14 @@ async function checkBrowserInstallation() {
   }
 }
 
-async function captureScreenshot(pageres, page, baseUrl, outputDir, resolutions, delay) {
+async function captureScreenshot(pageres, page, baseUrl, outputDir, resolutions, delay, timestamp) {
   try {
+    const pageSlug = slugify(page.name);
+    const filename = `${timestamp.dateStr}_${timestamp.timeStr}_${pageSlug}-<%= size %>`;
+
     await new pageres({
       delay: delay,
-      filename: `${page.name}-<%= size %>`,
+      filename: filename,
       format: 'jpg',
     })
       .source(`${baseUrl}${page.url}`, resolutions)
@@ -63,14 +88,20 @@ async function captureScreenshot(pageres, page, baseUrl, outputDir, resolutions,
   const Pageres = (await import('pageres')).default;
 
   const date = new Date();
-  const dateFormat = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getDate()}/${date.toLocaleTimeString('es-ES', {hour12: false})}`;
+  const timestamp = formatDate(date);
 
   const baseUrl = 'https://nueva.afpmodelo.cl';
-  const outputDir = `screenshots/${baseUrl.split('//')[1]}/${dateFormat}`;
+  const domain = baseUrl.split('//')[1];
+  const outputDir = `screenshots/${domain}`;
   const resolutions = ['360x740', '1280x1024'];
   const delay = 2;
 
-  console.log(chalk.blue.italic(`📁 Output: ${outputDir}\n`));
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
+
+  console.log(chalk.blue.italic(`📁 Output: ${outputDir}`));
+  console.log(chalk.gray(`📅 Timestamp: ${timestamp.dateStr} ${timestamp.timeStr}\n`));
 
   const results = [];
 
@@ -86,7 +117,7 @@ async function captureScreenshot(pageres, page, baseUrl, outputDir, resolutions,
 
     process.stdout.write(`\r${chalk.cyan('Procesando:')} ${bar} ${pageNum}/${totalPages} (${progressPercent}%)`);
 
-    const result = await captureScreenshot(Pageres, page, baseUrl, outputDir, resolutions, delay);
+    const result = await captureScreenshot(Pageres, page, baseUrl, outputDir, resolutions, delay, timestamp);
     results.push(result);
   }
 
