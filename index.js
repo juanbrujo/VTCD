@@ -2,7 +2,9 @@ const fs = require('fs');
 const { EventEmitter } = require('events');
 const path = require('path');
 const chalk = require('chalk');
+const readline = require('readline');
 const cliProgress = require('cli-progress');
+const version = require('./package.json').version;
 
 const config = JSON.parse(fs.readFileSync('./config/pages.json', 'utf8'));
 const { baseUrl, pages } = config;
@@ -16,6 +18,7 @@ const EMOJIS = {
   processing: '⏳',
   complete: '🎉',
   info: 'ℹ️',
+  arrow: '→',
 };
 
 function slugify(text) {
@@ -38,6 +41,20 @@ function formatDate(date) {
     dateStr: `${year}${month}${day}`,
     timeStr: `${hours}:${minutes}`,
   };
+}
+
+function askQuestion(query) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  return new Promise(resolve => {
+    rl.question(query, answer => {
+      rl.close();
+      resolve(answer.toLowerCase());
+    });
+  });
 }
 
 async function checkBrowserInstallation() {
@@ -66,6 +83,20 @@ async function captureScreenshot(pageres, page, baseUrl, outputDir, resolutions,
     const pageSlug = slugify(page.name);
     const filename = `${timestamp.dateStr}_${timestamp.timeStr}_${pageSlug}-<%= size %>`;
 
+    const progressBar = new cliProgress.SingleBar({
+      format: `${EMOJIS.processing} {name} | {bar} | {value}/{total}`,
+      hideCursor: true,
+      barCompleteChar: '█',
+      barIncompleteChar: '░',
+      barsize: 15,
+      stopOnComplete: true,
+    });
+
+    progressBar.start(resolutions.length, 0, { name: chalk.cyan(page.name) });
+
+    let completed = 0;
+    const originalRun = pageres.prototype.run;
+
     await new pageres({
       delay: delay,
       filename: filename,
@@ -75,6 +106,9 @@ async function captureScreenshot(pageres, page, baseUrl, outputDir, resolutions,
       .destination(outputDir)
       .run();
 
+    progressBar.update(resolutions.length);
+    progressBar.stop();
+
     return { success: true, page };
   } catch (error) {
     return { success: false, page, error: error.message };
@@ -82,16 +116,35 @@ async function captureScreenshot(pageres, page, baseUrl, outputDir, resolutions,
 }
 
 (async () => {
-  console.log(`\n${EMOJIS.start} ${chalk.cyan.bold('Visual Test Critical Deploy')}`);
-  console.log(chalk.gray('─'.repeat(50)) + '\n');
+  console.log(`\n${EMOJIS.start} ${chalk.cyan.bold('Visual Test Critical Deploy')} v${version}\n`);
+  console.log(chalk.gray('─'.repeat(50)));
+
+  const domain = baseUrl.split('//')[1];
+  const date = new Date();
+  const timestamp = formatDate(date);
+
+  console.log(chalk.blue.italic(`\n📁 Domain: ${domain}`));
+  console.log(chalk.gray(`📅 Date: ${timestamp.dateStr} ${timestamp.timeStr}`));
+  console.log(chalk.cyan(`\n📋 URLs to process (${pages.length}):\n`));
+
+  pages.forEach((page, i) => {
+    console.log(chalk.gray(`  ${i + 1}. ${EMOJIS.arrow} ${page.name}`));
+    console.log(chalk.gray(`     ${baseUrl}${page.url}`));
+  });
+
+  console.log('\n' + chalk.gray('─'.repeat(50)));
+  const answer = await askQuestion(chalk.yellow('\n❓ Begin processing? [Y/n]: '));
+
+  if (answer === 'n' || answer === 'no') {
+    console.log(chalk.yellow('\n⊘ Cancelled by user\n'));
+    process.exit(0);
+  }
+
+  console.log('\n' + chalk.gray('─'.repeat(50)) + '\n');
 
   await checkBrowserInstallation();
   const Pageres = (await import('pageres')).default;
 
-  const date = new Date();
-  const timestamp = formatDate(date);
-
-  const domain = baseUrl.split('//')[1];
   const outputDir = `screenshots/${domain}`;
   const resolutions = ['360x740', '1280x1024'];
   const delay = 2;
@@ -100,28 +153,13 @@ async function captureScreenshot(pageres, page, baseUrl, outputDir, resolutions,
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  console.log(chalk.blue.italic(`📁 Output: ${outputDir}`));
-  console.log(chalk.gray(`📅 Timestamp: ${timestamp.dateStr} ${timestamp.timeStr}\n`));
-
   const results = [];
 
   for (let i = 0; i < pages.length; i++) {
     const page = pages[i];
-    const pageNum = i + 1;
-    const totalPages = pages.length;
-
-    const progressPercent = Math.round((pageNum / totalPages) * 100);
-    const barLength = 20;
-    const filledLength = Math.round((pageNum / totalPages) * barLength);
-    const bar = '█'.repeat(filledLength) + '░'.repeat(barLength - filledLength);
-
-    process.stdout.write(`\r${chalk.cyan('Procesando:')} ${bar} ${pageNum}/${totalPages} (${progressPercent}%)`);
-
     const result = await captureScreenshot(Pageres, page, baseUrl, outputDir, resolutions, delay, timestamp);
     results.push(result);
   }
-
-  process.stdout.write('\n');
 
   console.log('\n' + chalk.gray('─'.repeat(50)) + '\n');
 

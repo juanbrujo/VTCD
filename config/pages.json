@@ -1,17 +1,25 @@
 {
-  "baseUrl": "https://nueva.afpmodelo.cl",
+  "baseUrl": "https://www.mindy.cl",
   "pages": [
     {
-      "name": "Home",
+      "name": "Inicio",
       "url": "/"
     },
     {
-      "name": "Incorporaciones",
-      "url": "/incorporaciones"
+      "name": "Agendar Sesión Particular",
+      "url": "/psicologos-online-mindy/"
     },
     {
-      "name": "Evolución Valor Cuota",
-      "url": "/evolucion-valor-cuota"
+      "name": "Mindy Night",
+      "url": "/mindy-late-consulta-de-psicologos-de-noche"
+    },
+    {
+      "name": "Medicina en Salud Mental Online",
+      "url": "/medicina-en-salud-mental-online/"
+    },
+    {
+      "name": "Nutricionistas",
+      "url": "/nutricionistas-online/"
     }
   ]
 }
