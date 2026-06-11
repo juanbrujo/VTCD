@@ -92,7 +92,7 @@ YYYYMMDD_HH:MM_pagetitle-resolution.jpg
 ```bash
 $ node .
 
-🚀 Visual Test Critical Deploy v1.0.2
+🚀 Visual Test Critical after Deploy
 
 ──────────────────────────────────────────────────
 
@@ -126,10 +126,10 @@ $ node .
 
 ──────────────────────────────────────────────────
 
-🎉 Completado!
+🎉 Completed!
 
-✓ Exitosos: 3
-📸 Screenshots guardados en: screenshots/example.com
+✓ Successful: 3
+📸 Screenshots saved in: screenshots/example.com
 ```
 
 ## 📦 Dependencies
@@ -182,7 +182,7 @@ pnpm dlx puppeteer browsers install chrome
 
 ## 📝 License
 
-MIT - © Jorge Epuñan H.
+[MIT](LICENSE) - © Jorge Epuñan H.
 
 ## 🙋 Support
 
