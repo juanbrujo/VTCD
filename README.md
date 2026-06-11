@@ -9,7 +9,8 @@ Este script crea screenshots de páginas críticas para el funcionamiento del si
 ## Uso:
 
 ```bash
-$ npm i
+$ pnpm install
+$ pnpm dlx puppeteer browsers install chrome
 $ node .
 ```
 
