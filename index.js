@@ -1,8 +1,7 @@
-import Pageres from 'pageres';
-import { readFileSync } from 'fs';
-import { EventEmitter } from 'events';
+const fs = require('fs');
+const { EventEmitter } = require('events');
 
-const pages = JSON.parse(readFileSync('./config/pages.json', 'utf8'));
+const pages = JSON.parse(fs.readFileSync('./config/pages.json', 'utf8'));
 
 EventEmitter.defaultMaxListeners = 25;
 
@@ -15,18 +14,22 @@ const dir = `screenshots/${base.split('//')[1]}/${dateFormat}`;
 const res = ['360x740', '1280x1024'];
 const delay = 2;
 
-for (const page of pages) {
-  (async () => {
-    console.log(`Comenzando ${page.name}`);
-    await new Pageres({
-      delay: delay,
-      filename: `${page.name}-<%= size %>`,
-      format: 'jpg',
-    })
-      .source(`${base}${page.url}`, res)
-      .destination(dir)
-      .run();
+(async () => {
+  const Pageres = (await import('pageres')).default;
 
-    console.log(`Terminado ${page.name}`);
-  })();
-}
+  for (const page of pages) {
+    (async () => {
+      console.log(`Comenzando ${page.name}`);
+      await new Pageres({
+        delay: delay,
+        filename: `${page.name}-<%= size %>`,
+        format: 'jpg',
+      })
+        .source(`${base}${page.url}`, res)
+        .destination(dir)
+        .run();
+
+      console.log(`Terminado ${page.name}`);
+    })();
+  }
+})();
