@@ -4,6 +4,7 @@ const path = require('path');
 const chalk = require('chalk');
 const readline = require('readline');
 const cliProgress = require('cli-progress');
+const { Sluggin } = require('sluggin');
 const version = require('./package.json').version;
 
 const config = JSON.parse(fs.readFileSync('./config/pages.json', 'utf8'));
@@ -20,15 +21,6 @@ const EMOJIS = {
   info: 'ℹ️',
   arrow: '→',
 };
-
-function slugify(text) {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/[\s_-]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
 
 function formatDate(date) {
   const year = date.getFullYear();
@@ -80,7 +72,7 @@ async function checkBrowserInstallation() {
 
 async function captureScreenshot(pageres, page, baseUrl, outputDir, resolutions, delay, timestamp) {
   try {
-    const pageSlug = slugify(page.name);
+    const pageSlug = Sluggin(page.name);
     const filename = `${timestamp.dateStr}_${timestamp.timeStr}_${pageSlug}-<%= size %>`;
 
     const progressBar = new cliProgress.SingleBar({

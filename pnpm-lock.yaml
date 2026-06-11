@@ -17,6 +17,9 @@ importers:
       pageres:
         specifier: ^8.1.0
         version: 8.1.0
+      sluggin:
+        specifier: ^0.4.1
+        version: 0.4.1
 
 packages:
 
@@ -744,6 +747,9 @@ packages:
 
   signal-exit@3.0.7:
     resolution: {integrity: sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ==}
+
+  sluggin@0.4.1:
+    resolution: {integrity: sha512-1kgkmqcriKcGD6YfNOPwcAzgWCj2YNByN7W+TARjvJhidCKRAFDNCGCgz57x9y8R/6th4uaBHjMPyQUKlt26jw==}
 
   smart-buffer@4.2.0:
     resolution: {integrity: sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==}
@@ -1706,6 +1712,8 @@ snapshots:
   semver@7.8.4: {}
 
   signal-exit@3.0.7: {}
+
+  sluggin@0.4.1: {}
 
   smart-buffer@4.2.0: {}
 
