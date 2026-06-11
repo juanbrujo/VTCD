@@ -1,5 +1,5 @@
 /**
- * VTCD - Visual Test Critical Deploy
+ * VTCD - Visual Test Critical after Deploy
  * Automated screenshot testing tool for critical website pages
  *
  * This tool captures screenshots of specified pages at multiple resolutions

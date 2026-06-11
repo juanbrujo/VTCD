@@ -1,6 +1,8 @@
-# VTCD - Visual Test Critical Deploy
+# VTCD - Visual Test Critical after Deploy
 
 > 🚀 Automated screenshot testing for critical website pages
+
+![](https://robohash.org/visual-test-critical-after-deploy)
 
 Tool for capturing and monitoring screenshots of critical website pages to ensure they remain properly configured after deployments. Provides visual regression testing with colorful CLI feedback and organized file management.
 
@@ -180,7 +182,7 @@ pnpm dlx puppeteer browsers install chrome
 
 ## 📝 License
 
-MIT - © Jorge Epuñan
+MIT - © Jorge Epuñan H.
 
 ## 🙋 Support
 
