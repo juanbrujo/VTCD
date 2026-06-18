@@ -16,7 +16,7 @@ const { Sluggin } = require('sluggin');
 const version = require('./package.json').version;
 
 const config = JSON.parse(fs.readFileSync('./config/pages.json', 'utf8'));
-const { baseUrl, pages } = config;
+const { baseUrl = '', pages } = config;
 
 EventEmitter.defaultMaxListeners = 25;
 
@@ -129,13 +129,15 @@ async function captureScreenshot(Pageres, page, baseUrl, outputDir, resolutions,
 
     progressBar.start(resolutions.length, 0, { name: chalk.cyan(page.name), time: '0' });
 
+    const pageUrl = baseUrl ? `${baseUrl}${page.url}` : page.url;
+
     for (let i = 0; i < resolutions.length; i++) {
       await new Pageres({
         delay: delay,
         filename: filename,
         format: 'jpg',
       })
-        .source(`${baseUrl}${page.url}`, [resolutions[i]])
+        .source(pageUrl, [resolutions[i]])
         .destination(outputDir)
         .run();
 
@@ -161,10 +163,19 @@ async function captureScreenshot(Pageres, page, baseUrl, outputDir, resolutions,
  * 5. Displays summary of successful and failed captures
  */
 (async () => {
-  console.log(`\n${EMOJIS.start} ${chalk.cyan.bold('Visual Test Critical Deploy')} v${version}\n`);
+  console.log(`\n${EMOJIS.start} ${chalk.cyan.bold('Visual Test Critical after Deploy')} v${version}\n`);
   console.log(chalk.gray('─'.repeat(50)));
 
-  let domain = baseUrl.split('//')[1];
+  let domain;
+  if (baseUrl) {
+    domain = baseUrl.split('//')[1];
+  } else {
+    // Extract domain from first page URL if baseUrl is empty
+    const firstPageUrl = pages[0]?.url || '';
+    const urlMatch = firstPageUrl.match(/https?:\/\/([^/]+)/);
+    domain = urlMatch ? urlMatch[1] : 'screenshots';
+  }
+
   if (domain.startsWith('www.')) {
     domain = domain.slice(4);
   }
@@ -178,8 +189,9 @@ async function captureScreenshot(Pageres, page, baseUrl, outputDir, resolutions,
   console.log(chalk.cyan(`\n📋 URLs to process (${pages.length}):\n`));
 
   pages.forEach((page, i) => {
+    const pageUrl = baseUrl ? `${baseUrl}${page.url}` : page.url;
     console.log(chalk.gray(`  ${i + 1}. ${EMOJIS.arrow} ${page.name}`));
-    console.log(chalk.gray(`     ${baseUrl}${page.url}`));
+    console.log(chalk.gray(`     ${pageUrl}`));
   });
 
   console.log('\n' + chalk.gray('─'.repeat(50)));
@@ -225,10 +237,10 @@ async function captureScreenshot(Pageres, page, baseUrl, outputDir, resolutions,
   });
 
   console.log('\n' + chalk.gray('─'.repeat(50)) + '\n');
-  console.log(chalk.bold(`${EMOJIS.complete} Completado!\n`));
-  console.log(chalk.green(`✓ Exitosos: ${successful}`));
+  console.log(chalk.bold(`${EMOJIS.complete} Completes!\n`));
+  console.log(chalk.green(`✓ Successful: ${successful}`));
   if (failed > 0) {
-    console.log(chalk.red(`✗ Errores: ${failed}`));
+    console.log(chalk.red(`✗ Failed: ${failed}`));
   }
-  console.log(chalk.blue.italic(`📸 Screenshots guardados en: ${outputDir}\n`));
+  console.log(chalk.blue.italic(`📸 Screenshots saved in: ${outputDir}\n`));
 })();

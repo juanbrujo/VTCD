@@ -37,7 +37,9 @@ node .
 
 ## 📁 Configuration
 
-Edit `config/pages.json` to configure the base URL and pages to capture:
+Edit `config/pages.json` to configure the base URL and pages to capture.
+
+### Option 1: Using baseUrl (relative paths)
 
 ```json
 {
@@ -59,12 +61,33 @@ Edit `config/pages.json` to configure the base URL and pages to capture:
 }
 ```
 
+### Option 2: Without baseUrl (complete URLs)
+
+```json
+{
+    "pages": [
+        {
+            "name": "Home",
+            "url": "https://example.com/"
+        },
+        {
+            "name": "Contact",
+            "url": "https://example.com/contact"
+        },
+        {
+            "name": "Other Site",
+            "url": "https://anothersite.com/page"
+        }
+    ]
+}
+```
+
 ### Configuration Options
 
-- **baseUrl** (string, required): The domain URL for capturing screenshots
+- **baseUrl** (string, optional): Base domain URL for capturing screenshots. If omitted or empty, each page URL must be complete
 - **pages** (array, required): List of pages to capture
   - **name** (string): Display name (used in CLI and converted to slug for filename)
-  - **url** (string): Page path relative to baseUrl
+  - **url** (string): Either a path relative to baseUrl (if baseUrl is set) or a complete URL (if baseUrl is omitted)
 
 ## 📸 Output
 
